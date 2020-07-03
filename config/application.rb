@@ -30,6 +30,8 @@ module VeneueApi
       end
     end
 
+    config.action_dispatch.tld_length = 0
+
     config.load_defaults 6.0
 
     # Settings in config/environments/* take precedence over those specified here.

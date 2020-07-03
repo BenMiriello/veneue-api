@@ -1,5 +1,7 @@
 # README
 
+Top level domain length in action dispatch set to 0 to allow accessing subdomain api.
+
 This README would normally document whatever steps are necessary to get the
 application up and running.
 
