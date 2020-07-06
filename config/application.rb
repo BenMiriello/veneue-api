@@ -23,13 +23,6 @@ module VeneueApi
   class Application < Rails::Application
     # Initialize configuration defaults for originally generated Rails version.
 
-    config.middleware.insert_before 0, Rack::Cors do
-      allow do
-        origins "*"
-        resource "*", :headers => :any, :methods => [:get, :post, :options]
-      end
-    end
-
     config.action_dispatch.tld_length = 0
 
     config.load_defaults 6.0
