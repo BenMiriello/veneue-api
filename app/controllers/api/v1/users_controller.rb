@@ -4,27 +4,33 @@ module Api::V1
 
     def profile
       if user = current_user
-        set_jwt_cookie
-        render json: {name: user.name, email: user.email}, status: :accepted
+        render json: {name: user.name}, status: :accepted
       else
-        render json: { error: 'Invalid user information.'}, status: :not_acceptable
+        render json: {error: ''}, status: :not_acceptable
       end
     end
 
     def create
-      user = User.create(user_params)
-      if user.valid?
-        token = encode_token(user_id: user.id)
-        render json: {name: user.name, email: user.email}, status: :created
+      @user = User.create(user_params)
+      if @user.valid?
+        @token = encode_token(user_id: @user.id)
+        # cookies.signed[:jwt] = {value: token, httponly: true, expires: 2.days.from_now}
+        render json: {user: {name: @user.name}, token: @token}, status: :created
       else
-        render json: { error: 'failed to create user.' }, status: :not_acceptable
+        render json: {error: 'failed to create user.'}, status: :not_acceptable
       end
+    end
+
+    def test
+      cookies[:test] = {value: 'test'}
+      cookies.signed[:test2] = {value: 'test2'}
+      render json: "look at the cookies"
     end
 
     private
 
     def user_params
-      params.require(:user).permit(:name, :password, :email)
+      params.permit(:name, :password, :email)
     end
   end
 end

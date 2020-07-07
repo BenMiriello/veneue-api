@@ -1,16 +1,24 @@
 class ApplicationController < ActionController::API
   include ActionController::Serialization
   include ActionController::Cookies
+  include ActionController::RequestForgeryProtection
+
+  # protect_from_forgery with: :exception
   before_action :authorized
 
   def encode_token(data)
     JWT.encode(data, 'hashketball')
   end
 
+  def auth_header
+    request.headers['Authorization']
+  end
+
   def decoded_token
-    if jwt = cookies.signed[:jwt]
+    # if jwt = cookies[:jwt]
+    if auth_header
       begin
-        JWT.decode(jwt, 'hashketball', true, algorithm: 'HS256')
+        JWT.decode(auth_header, 'hashketball', true, algorithm: 'HS256')
       rescue JWT::DecodeError
         nil
       end
@@ -29,6 +37,6 @@ class ApplicationController < ActionController::API
   end
 
   def authorized
-    render json: {message: 'Please log in'}, status: unauthorized unless logged_in?
+    render json: {message: 'Please log in'}, status: :unauthorized unless logged_in?
   end
 end

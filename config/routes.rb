@@ -1,5 +1,7 @@
 Rails.application.routes.draw do
 
+  post '/test', to: 'users#test'
+  
   # namespace :api do
   constraints subdomain: 'api' do
     scope module: 'api' do
