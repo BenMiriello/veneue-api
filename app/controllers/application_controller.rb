@@ -1,20 +1,16 @@
 class ApplicationController < ActionController::API
   include ActionController::Serialization
+  include ActionController::Cookies
   before_action :authorized
 
   def encode_token(data)
     JWT.encode(data, 'hashketball')
   end
 
-  def auth_header
-    request.headers['Authorization']
-  end
-
   def decoded_token
-    if auth_header
-      @token = auth_header.split(' ')[1]
+    if jwt = cookies.signed[:jwt]
       begin
-        JWT.decode(@token, 'hashketball', true, algorithm: 'HS256')
+        JWT.decode(jwt, 'hashketball', true, algorithm: 'HS256')
       rescue JWT::DecodeError
         nil
       end

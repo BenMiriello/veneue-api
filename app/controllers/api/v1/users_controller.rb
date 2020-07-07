@@ -3,28 +3,21 @@ module Api::V1
     skip_before_action :authorized, only: [:create]
 
     def profile
-      response.set_cookie(
-        :jwt,
-        {
-          value: 'this could be a token or whatever cookie value you wanted.',
-          expires: 1.hours.from_now,
-          path: '/api/v1/auth',
-          secure: Rails.env.production?,
-          httponly: Rails.env.production?
-        }
-      )
-      render json: {user: UserSerializer.new(current_user) }, status: :accepted
+      if user = current_user
+        set_jwt_cookie
+        render json: {name: user.name, email: user.email}, status: :accepted
+      else
+        render json: { error: 'Invalid user information.'}, status: :not_acceptable
+      end
     end
 
     def create
       user = User.create(user_params)
-      puts user
-      # byebug
       if user.valid?
         token = encode_token(user_id: user.id)
-        render json: {user: UserSerializer.new(user), jwt: token}, status: :created
+        render json: {name: user.name, email: user.email}, status: :created
       else
-        render json: {error: 'failed to create user.'}, status: :not_acceptable
+        render json: { error: 'failed to create user.' }, status: :not_acceptable
       end
     end
 
