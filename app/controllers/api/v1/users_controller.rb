@@ -4,7 +4,7 @@ module Api::V1
 
     def profile
       if user = current_user
-        render json: {name: user.name}, status: :accepted
+        render json: {name: user.name, email: user.email}, status: :accepted
       else
         render json: {error: ''}, status: :not_acceptable
       end
@@ -15,7 +15,7 @@ module Api::V1
       if @user.valid?
         @token = encode_token(user_id: @user.id)
         # cookies.signed[:jwt] = {value: token, httponly: true, expires: 2.days.from_now}
-        render json: {user: {name: @user.name}, token: @token}, status: :created
+        render json: {user: {name: @user.name, email: @user.email}, token: @token}, status: :created
       else
         render json: {error: 'failed to create user.'}, status: :not_acceptable
       end
@@ -30,7 +30,7 @@ module Api::V1
     private
 
     def user_params
-      params.permit(:name, :password, :email)
+      params.require(:user).permit(:name, :password, :email)
     end
   end
 end
