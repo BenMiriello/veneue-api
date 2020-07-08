@@ -15,6 +15,7 @@ module Api::V1
       if @user.valid?
         @token = encode_token(user_id: @user.id)
         # cookies.signed[:jwt] = {value: token, httponly: true, expires: 2.days.from_now}
+        session[:jwt] = @token
         render json: {user: {name: @user.name, email: @user.email}, token: @token}, status: :created
       else
         render json: {error: 'failed to create user.'}, status: :not_acceptable
@@ -22,8 +23,8 @@ module Api::V1
     end
 
     def test
-      cookies[:test] = {value: 'test'}
-      cookies.signed[:test2] = {value: 'test2'}
+      # cookies[:test] = {value: 'test'}
+      session[:test] = "test"
       render json: "look at the cookies"
     end
 

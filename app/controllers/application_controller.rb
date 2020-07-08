@@ -15,10 +15,10 @@ class ApplicationController < ActionController::API
   end
 
   def decoded_token
-    # if jwt = cookies[:jwt]
-    if auth_header
+    # if auth_header
+    if jwt = cookies[:jwt]
       begin
-        JWT.decode(auth_header, 'hashketball', true, algorithm: 'HS256')
+        @token = JWT.decode(jwt, 'hashketball', true, algorithm: 'HS256')
       rescue JWT::DecodeError
         nil
       end

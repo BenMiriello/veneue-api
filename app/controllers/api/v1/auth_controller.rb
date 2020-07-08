@@ -6,8 +6,10 @@ module Api::V1
       @user = User.find_by(email: login_params[:email])
       if @user && @user.authenticate(login_params[:password])
         @token = encode_token(user_id: @user.id)
-        # cookies[:jwt] = {value: token}, httponly: true, expires: 2.days.from_now}
-        render json: {user: {name: @user.name}, jwt: @token}, status: :accepted
+        # cookies[:jwt] = {value: token, httponly: true, expires: 2.days.from_now}
+        byebug
+        session[:jwt] = @token
+        render json: {user: {name: @user.name}, jwt: ''}, status: :accepted
       else
         render json: { message: "Invalid username or password" }, status: :unauthorized
       end
