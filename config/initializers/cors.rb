@@ -7,12 +7,17 @@
 
 Rails.application.config.middleware.insert_before 0, Rack::Cors do
   allow do
-    # origins Rails.application.config.allowed_cors_origins
-    origins 'http://localhost:3000'
+    origins "http://localhost:3000"
+    resource "*",
+      headers: :any,
+      methods: [:get, :post, :put, :patch, :delete, :options, :head],
+      credentials: true
+  end
 
-    resource '*',
-      headers: :any, 
-      credentials: true,
-      methods: [:get, :post, :put, :patch, :delete, :options, :head]
+  allow do
+    origins "https://veneue.herokuapp.com"
+    resource "*",
+      methods: [:get, :post, :put, :patch, :delete, :options, :head],
+      credentials: true
   end
 end
