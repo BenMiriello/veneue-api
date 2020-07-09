@@ -1,7 +1,7 @@
-class ApplicationController < ActionController::API
-  include ActionController::Serialization
-  include ActionController::Cookies
-  include ActionController::RequestForgeryProtection
+class ApplicationController < ActionController::Base
+  # include ActionController::Serialization
+  # include ActionController::Cookies
+  # include ActionController::RequestForgeryProtection
 
   # protect_from_forgery with: :exception
   before_action :authorized

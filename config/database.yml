@@ -82,4 +82,4 @@ production:
   <<: *default
   database: veneue_api_production
   username: veneue_api
-  password: <%= ENV['veneue_api_DATABASE_PASSWORD'] %>
+  password: <%= ENV['VENEUE_API_DATABASE_PASSWORD'] %>
