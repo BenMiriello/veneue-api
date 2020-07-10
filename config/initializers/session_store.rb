@@ -1,5 +1,5 @@
-Rails.application.config.session_store :cookie_store, key: "_veneue", domain: "http://veneue.herokuapp.com"
-# if Rails.env === "production"
+# if Rails.env == "production"
+#     Rails.application.config.session_store :cookie_store, key: "_veneue", httponly: true, domain: "http://veneue.herokuapp.com"
 # else
-#   Rails.application.config.session_store :cookie_store, key: "hashketball"
+#     Rails.application.config.session_store :cookie_store, key: "_veneue", httponly: true
 # end

@@ -9,8 +9,6 @@ rails new veneue-api --database=postgresql --skip-spring
 Proper start command:
 ```
 rails new app-name --database=postgresql
-...
-rails db:create
 ```
 
 add to gemfile
@@ -27,29 +25,33 @@ touch config/initializers/cors.rb
 touch config/initializers/session_store.rb
 ```
 
-in cors.rb
+in config/initializers/cors.rb
 ```
 Rails.application.config.middleware.insert_before 0, Rack::Cors do
-    allow do
-        origins "http://localhost:3000"
-        resource "*",
-            headers: :any,
-            methods: [:get, :post, :put, :patch, :delete, :options, :head],
-            credentials: true
-    end
+  allow do
+    origins "http://localhost:3000"
+    resource "*",
+      headers: :any,
+      methods: [:get, :post, :put, :patch, :delete, :options, :head],
+      credentials: true
+  end
 
-    allow do
-        origins "https://veneue.herokuapp.com"
-        resource "*",
-            methods: [:get, :post, :put, :patch, :delete, :options, :head],
-            credentials: true
-    end
+  allow do
+    origins "https://veneue.herokuapp.com"
+    resource "*",
+      methods: [:get, :post, :put, :patch, :delete, :options, :head],
+      credentials: true
+  end
 end
 ```
 
 in config/initializers/session_store.rb
 ```
-Rails.application.config.session_store :cookie_store, key: "_veneue", domain: "http://veneue.herokuapp.com"
+if Rails.env == "production"
+    Rails.application.config.session_store :cookie_store, key: "_veneue", domain: "http://veneue.herokuapp.com"
+else
+    Rails.application.config.session_store :cookie_store, key: "_veneue"
+end
 ```
 
 Test with new route
@@ -60,8 +62,6 @@ root to "static#home"
 Create app/controllers/static_controller.rb
 ```
 class StaticController < ApplicationController
-  skip_before_action :authorized
-
   def home
     render json: { status: "It's working" }
   end
@@ -90,6 +90,7 @@ end
 ```
 
 ```
+rails db:create
 rails db:migrate
 ```
 
@@ -114,7 +115,11 @@ class SessionsController < ApplicationController
       render json: {
         status: :created,
         logged_in: true,
-        user: user
+        user: {
+          id: user.id,
+          name: user.name,
+          email: user.email
+        },
       }
     else
       render json: {status: 401}
@@ -122,6 +127,13 @@ class SessionsController < ApplicationController
   end
 end
 ```
+
+bypass Rails' built in csrf protection by adding this to ApplicationController
+```
+skip_before_action :verify_authenticity_token
+```
+
+
 create a user in rails c
 ```
 User.create(email: "ben@ben.ben", password: "ben", name: "ben")
@@ -168,20 +180,28 @@ then in SessionsController
 ```
     include CurrentUserConcern
 ...
-    def logged_in
-        if @current_user
-            render json: {
-                logged_in: true,
-                user: @current_user
-            }
-        else
-            render json: { logged_in: false }
-        end
+  def logged_in
+    if @current_user
+      render json: {
+        logged_in: true,
+        user: {
+          id: @current_user.id,
+          name: @current_user.name,
+          email: @current_user.email
+        }
+      }
+    else
+      render json: { logged_in: false }
     end
+  end
 
-    def logout
-        reset_session
-        render json: { status: 200, logged_out: true }
-    end
+  def logout
+    reset_session
+    render json: { status: 200, logged_out: true }
+  end
 ```
 
+Also set default port to 3001
+```
+port        ENV.fetch("PORT") { 3001 }
+```
