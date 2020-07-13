@@ -1,32 +1,25 @@
 module Api::V1
   class SessionsController < ApplicationController
-    skip_before_action :authorized, only: [:create]
+    skip_before_action :authorize, only: [:create]
 
+    # POST /sessions
     def create
-      @user = User
-        .find_by(email: params["user"]["email"])
-        .try(:authenticate, params["user"]["password"])
-
+      @user = User.find_by(email: params[:user][:email])
+        .try(:authenticate, params[:user][:password])
       if @user
         set_session
-        render json: {
-          logged_in: true,
-          status: :created,
-          user: user_serialized,
-        }
+        valid(:created)
       else
-        render json: { logged_in: false, status: :unauthorized }
+        invalid(:unauthorized)
       end
     end
 
+    # GET /logged_in
     def logged_in
-      render json: {
-        logged_in: true,
-        status: :ok,
-        user: user_serialized,
-      }
+      valid(:ok)
     end
 
+    # DELETE /logout
     def logout
       cookies.delete("_veneue")
     end

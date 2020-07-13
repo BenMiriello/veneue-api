@@ -1,12 +1,12 @@
 class ApplicationController < ActionController::Base
   skip_before_action :verify_authenticity_token
-  before_action :authorized
-
-  def authorized
-    if user_id = cookies.signed["_veneue"]
-      @user = User.find(user_id)
-    else
-      render json: { logged_in: false }
+  before_action :authorize
+  
+  def authorize
+    user_id = cookies.signed["_veneue"]
+    @user = User.find(user_id)
+    if !@user
+      invalid(:unauthorized)
     end
   end
 
@@ -25,7 +25,18 @@ class ApplicationController < ActionController::Base
   def user_serialized
     {
       name: @user.name,
-      email: @user.email
+      email: @user.email,
     }
+  end
+
+  def valid(status, errors = @user ? @user.errors || [])
+    render json: {
+      user: user_serialized,
+      errors: errors,
+    }, status: status
+  end
+
+  def invalid(status, errors = @user ? @user.errors || [])
+    render json: { errors: errors }, status: status
   end
 end
