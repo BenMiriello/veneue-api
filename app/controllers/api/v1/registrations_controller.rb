@@ -1,4 +1,5 @@
-class RegistrationsController < ApplicationController
+module Api::V1
+  class RegistrationsController < ApplicationController
     def create
       user = User.create!(registration_params)
       if user
@@ -21,4 +22,4 @@ class RegistrationsController < ApplicationController
       params.require(:user).permit(:email, :password, :name)
     end
   end
-  
+end
