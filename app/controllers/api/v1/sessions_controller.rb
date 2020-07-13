@@ -1,6 +1,6 @@
 module Api::V1
   class SessionsController < ApplicationController
-    before_action :set_current_user, except: :create
+    skip_before_action :authorized, only: [:create]
 
     def create
       @user = User
@@ -8,47 +8,27 @@ module Api::V1
         .try(:authenticate, params["user"]["password"])
 
       if @user
-        cookies.signed["_veneue"] = {
-          value: @user.id,
-          httponly: true,
-          expires: 14.days.from_now,
-        }
+        set_session
         render json: {
-          status: :created,
           logged_in: true,
-          user: {
-            name: @user.name,
-            email: @user.email
-          },
+          status: :created,
+          user: user_serialized,
         }
       else
-        render json: { logged_in: false, status: 401 }
+        render json: { logged_in: false, status: :unauthorized }
       end
     end
 
     def logged_in
-      if @current_user
-        render json: {
-          logged_in: true,
-          user: {
-            name: @current_user.name,
-            email: @current_user.email
-          }
-        }
-      else
-        render json: { logged_in: false }
-      end
+      render json: {
+        logged_in: true,
+        status: :ok,
+        user: user_serialized,
+      }
     end
 
     def logout
       cookies.delete("_veneue")
-    end
-
-    def set_current_user
-      user_id = cookies.signed["_veneue"]
-      if user_id
-        @current_user = User.find(user_id)
-      end
     end
   end
 end

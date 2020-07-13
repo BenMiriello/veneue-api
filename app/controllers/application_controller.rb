@@ -1,38 +1,31 @@
 class ApplicationController < ActionController::Base
-  # before_action :authorized
   skip_before_action :verify_authenticity_token
+  before_action :authorized
 
-  # def encode_token(data)
-  #   JWT.encode(data, 'hashketball')
-  # end
+  def authorized
+    if user_id = cookies.signed["_veneue"]
+      @user = User.find(user_id)
+    else
+      render json: { logged_in: false }
+    end
+  end
 
-  # def auth_header
-  #   request.headers['Authorization']
-  # end
+  def set_session
+    cookies.signed["_veneue"] = {
+      value: @user.id,
+      httponly: true,
+      expires: 14.days.from_now,
+      sameSite: 'none',
+    }
+    if Rails.env != 'development'
+      cookies.signed["_veneue"].secure = 'true'
+    end
+  end
 
-  # def decoded_token
-  #   # if auth_header
-  #   if jwt = cookies[:jwt]
-  #     begin
-  #       @token = JWT.decode(jwt, 'hashketball', true, algorithm: 'HS256')
-  #     rescue JWT::DecodeError
-  #       nil
-  #     end
-  #   end
-  # end
-
-  # def current_user
-  #   if decoded_token
-  #     user_id = decoded_token[0]['user_id']
-  #     @user = User.find_by id: user_id
-  #   end
-  # end
-
-  # def logged_in?
-  #   !!current_user
-  # end
-
-  # def authorized
-  #   render json: {message: 'Please log in'}, status: :unauthorized unless logged_in?
-  # end
+  def user_serialized
+    {
+      name: @user.name,
+      email: @user.email
+    }
+  end
 end

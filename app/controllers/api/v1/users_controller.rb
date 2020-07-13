@@ -1,6 +1,21 @@
 module Api::V1
   class UsersController < ApplicationController
-      before_action :set_current_user, except: :create
+    skip_before_action :authorized, only: [:create]
+
+    # POST /users
+    def create
+      @user = User.create(params.require(:user).permit(:email, :password, :name))
+      if @user
+        set_session
+        render json: {
+          logged_in: true,
+          status: :created,
+          user: user_serialized
+        }
+      else
+        render json: { logged_in: false, status: 500 }
+      end
+    end
 
     # PATCH/PUT /users/1
     def update
@@ -14,20 +29,18 @@ module Api::V1
         if @user.update(new_user_data)
           render json: {
             logged_in: true,
-            status: 200,
-            user: {
-              name: @user.name,
-              email: @user.email
-            }
+            status: :ok,
+            user: user_serialized
           }
         else
-          render json: { logged_in: false, status: :not_acceptable, error: {messages: ["Unable to process request."]} }
+          render json: { logged_in: false, status: :not_acceptable, error: @user.errors }
         end
       else
         render json: @user.errors, status: :unprocessable_entity
       end
     end
 
+    # POST /update_password
     def update_password
       old_password = update_password_params["old_password"]
       new_password = update_password_params["new_password"]
@@ -36,17 +49,14 @@ module Api::V1
         if @user.update(password: new_password)
           render json: {
             logged_in: true,
-            status: 200,
-            user: {
-              name: @user.name,
-              email: @user.email
-            }
+            status: :ok,
+            user: user_serialized
           }
         else
-          render json: { logged_in: false, error: {messages:  @user.errors}}, status: :not_acceptable
+          render json: { logged_in: false, error: @user.errors }, status: :not_acceptable
         end
       else
-        render json: { logged_in: false, error: {messages:  @user.errors}}, status: :unprocessable_entity
+        render json: { logged_in: false, error: @user.errors }, status: :unprocessable_entity
       end
     end
 
@@ -57,13 +67,6 @@ module Api::V1
     end
 
     private
-
-    def set_current_user
-      user_id = cookies.signed["_veneue"]
-      if user_id
-        @user = User.find(user_id)
-      end
-    end
 
     def user_params
       params.require(:user).permit(:name, :email, :password)
