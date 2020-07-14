@@ -8,15 +8,15 @@ module Api::V1
         .try(:authenticate, params[:user][:password])
       if @user
         set_session
-        valid(:created)
+        render json: with_user, status: :created
       else
-        invalid(:unauthorized)
+        render json: with_user, status: :unauthorized
       end
     end
 
     # GET /logged_in
     def logged_in
-      valid(:ok)
+      render json: with_user, status: :ok
     end
 
     # DELETE /logout

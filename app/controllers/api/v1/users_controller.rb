@@ -4,26 +4,22 @@ module Api::V1
 
     # POST /users
     def create
-      if @user = User.create(params.require(:user)
-        .permit(:email, :password, :name))
+      if @user = User.create(params.require(:user).permit(:email, :password, :name))
         set_session
-        valid(:created)
+        render json: with_user, status: :created
       else
-        errors = @user.errors
-        authorize
-        valid(:not_acceptable, errors)
+        reset_user_and_errors
+        render json: with_user(@errors), status: :not_acceptable
       end
     end
 
     # PATCH /update_account
     def update_account
-      if @user && @user.authenticate(user_params["password"]) &&
-        @user.update(user_params)
-          valid(:ok)
+      if @user.authenticate(user_params["password"]) && @user.update(user_params)
+        render json: with_user, status: :ok
       else
-        errors = @user.errors
-        authorize
-        valid(:not_acceptable, errors)
+        reset_user_and_errors
+        render json: with_user(@errors), status: :not_acceptable
       end
     end
 
@@ -31,14 +27,13 @@ module Api::V1
     def update_password
       old_password = params[:user][:old_password]
       new_password = params[:user][:new_password]
-      if @user && !@user.authenticate(new_password) &&
-        @user.authenticate(old_password) &&
-          @user.update(password: new_password)
-            valid(:ok)
+      
+      if @user.authenticate(old_password) && !@user.authenticate(new_password) &&
+        @user.update(password: new_password)
+          render json: with_user, status: :ok
       else
-        errors = @user.errors
-        authorize
-        valid(:not_acceptable, errors)
+        reset_user_and_errors
+        render json: with_user(@errors), status: :not_acceptable
       end
     end
 
@@ -54,9 +49,10 @@ module Api::V1
       params.require(:user).permit(:name, :email, :password)
     end
 
-    def update_password_params
-      params.require(:user)
-        .permit(:name, :email, :old_password, :new_password)
+    def reset_user_and_errors
+      user_errors = @user.errors.full_messages
+      @errors = user_errors[0] ? user_errors : ['Unable to create user.']
+      authorize
     end
   end
 end
