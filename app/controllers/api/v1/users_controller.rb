@@ -8,32 +8,52 @@ module Api::V1
         set_session
         render json: with_user, status: :created
       else
-        reset_user_and_errors
-        render json: with_user(@errors), status: :not_acceptable
+        render json: with_user, status: :not_acceptable
       end
     end
 
-    # PATCH /update_account
-    def update_account
-      if @user.authenticate(user_params["password"]) && @user.update(user_params)
-        render json: with_user, status: :ok
-      else
-        reset_user_and_errors
-        render json: with_user(@errors), status: :not_acceptable
-      end
-    end
-
-    # POST /update_password
-    def update_password
-      old_password = params[:user][:old_password]
-      new_password = params[:user][:new_password]
-      
-      if @user.authenticate(old_password) && !@user.authenticate(new_password) &&
-        @user.update(password: new_password)
+    # PATCH /change_name
+    def change_name
+      user = @user
+      if user.authenticate(params[:user][:password]) &&
+        user.update(name: params[:user][:new_name])
+          @user = user
           render json: with_user, status: :ok
       else
-        reset_user_and_errors
-        render json: with_user(@errors), status: :not_acceptable
+        @user = user
+        errors = @user.errors.full_messages[0] ? @user.errors.full_messages :
+          ['Unable to change name.']
+        render json: with_user(errors), status: :not_acceptable
+      end
+    end
+
+    # PATCH /change_email
+    def change_email
+      user = @user
+      if user.authenticate(params[:user][:password]) &&
+        user.update(email: params[:user][:new_email])
+          render json: with_user, status: :ok
+      else
+        @user = user
+        errors = @user.errors.full_messages[0] ? @user.errors.full_messages :
+          ['Unable to update email.']
+        render json: with_user(errors), status: :not_acceptable
+      end
+    end
+
+    # PATCH /change_password
+    def change_password
+      user = @user
+      if user.authenticate(params[:user][:old_password]) &&
+        !user.authenticate(params[:user][:new_password]) &&
+          user.update(password: params[:user][:new_password])
+            @user = user
+            render json: with_user, status: :ok
+      else
+        @user = user
+        errors = @user.errors.full_messages[0] ? @user.errors.full_messages :
+          ['Unable to update password.']
+        render json: with_user(errors), status: :not_acceptable
       end
     end
 
@@ -41,18 +61,6 @@ module Api::V1
     def destroy
       @user.destroy
       cookies.delete("_veneue")
-    end
-
-    private
-
-    def user_params
-      params.require(:user).permit(:name, :email, :password)
-    end
-
-    def reset_user_and_errors
-      user_errors = @user.errors.full_messages
-      @errors = user_errors[0] ? user_errors : ['Unable to create user.']
-      authorize
     end
   end
 end
