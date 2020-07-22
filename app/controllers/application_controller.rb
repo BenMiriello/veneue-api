@@ -4,9 +4,9 @@ class ApplicationController < ActionController::Base
 
   def authorize
     if !user_id = cookies.signed["_veneue"]
-      render json: {errors: ['Session not found.']}, status: :unauthorized
+      render json: {}, status: :unauthorized
     elsif !@user = User.find(user_id)
-      render json: {errors: ['User not found.']}, status: :unauthorized
+      render json: {errors: ['No user found with provided id.']}, status: :unauthorized
     end
   end
 

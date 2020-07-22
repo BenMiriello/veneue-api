@@ -2,7 +2,7 @@ module Api::V1
   class SessionsController < ApplicationController
     skip_before_action :authorize, only: [:create]
 
-    # POST /sessions
+    # POST /login
     def create
       @user = User.find_by(email: params[:user][:email])
         .try(:authenticate, params[:user][:password])
@@ -14,8 +14,8 @@ module Api::V1
       end
     end
 
-    # GET /logged_in
-    def logged_in
+    # GET /check_logged_in
+    def check_logged_in
       render json: with_user, status: :ok
     end
 

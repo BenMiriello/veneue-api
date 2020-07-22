@@ -2,7 +2,7 @@ module Api::V1
   class UsersController < ApplicationController
     skip_before_action :authorize, only: [:create]
 
-    # POST /users
+    # POST /signup
     def create
       if @user = User.create(params.require(:user).permit(:email, :password, :name))
         set_session
@@ -57,7 +57,7 @@ module Api::V1
       end
     end
 
-    # DELETE /users/1
+    # DELETE /delete_account
     def destroy
       @user.destroy
       cookies.delete("_veneue")
